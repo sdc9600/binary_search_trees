@@ -14,8 +14,7 @@ class Tree
     mid = ((start+final) / 2.0).ceil
     root = Node.new(array[mid])
     root.left = build_tree(array[0..mid - 1], 0, mid - 1)
-    root.right = build_tree(array[mid + 1..array.length - 1], 0, mid - 1)
-    
+    root.right = build_tree(array[mid + 1..array.length - 1], 0, mid - 1)    
     @root = root
   end
 
@@ -26,14 +25,15 @@ class Tree
   end
 
   def insert(value)
+ #   binding.pry
     return @root = value if @root == nil
     tmp = @root
-    until tmp == nil do
+    until tmp.data == nil do
       if value <= tmp.data
-        return tmp.left = Node.new(value) if tmp.left.data == nil 
+        return tmp.left = Node.new(value) if tmp.left == nil 
         tmp = tmp.left
       elsif value > tmp.data
-        return tmp.right = Node.new(value) if tmp.right.data == nil
+        return tmp.right = Node.new(value) if tmp.right == nil
         tmp = tmp.right
       end
     end
@@ -81,18 +81,52 @@ class Tree
     queue = []
     if block_given?
       until queue.empty? && level_order_arr != []
-      level_order_arr.append(tmp)
+      level_order_arr.append(tmp) if tmp.data != nil
+      yield (level_order_arr[-1].data) if tmp.data != nil
       queue.append(tmp.left) if tmp.left != nil
       queue.append(tmp.right) if tmp.right != nil
-      yield tmp
       tmp = queue.shift
       end
     else
-      "no block"
+      @array
     end
   end
 
+  def inorder(tmp = @root, &block)
+   # binding.pry
+    if block_given?
+      inorder(tmp.left, &block) if tmp.left != nil
+      yield tmp.data if tmp.data != nil
+      inorder(tmp.right, &block) if tmp.right != nil
+    else
+      p @array
+    end
+  end
+
+  def preorder(tmp = @root, &block)
+    # binding.pry
+     if block_given?
+       yield tmp.data if tmp.data != nil
+       preorder(tmp.left, &block) if tmp.left != nil
+       preorder(tmp.right, &block) if tmp.right != nil
+     else
+       p @array
+     end
+   end
+
+   def postorder(tmp = @root, &block)
+    # binding.pry
+     if block_given?
+       postorder(tmp.left, &block) if tmp.left != nil
+       postorder(tmp.right, &block) if tmp.right != nil
+       yield tmp.data if tmp.data != nil
+     else
+       p @array
+     end
+   end
+
   def find(value)
+   # binding.pry
     tmp = @root
     until tmp == nil do
       if value < tmp.data
@@ -105,7 +139,57 @@ class Tree
     end
     nil
   end
+
+  def height(node)
+ #  binding.pry
+    current_height = 0
+    tmp = find(node)
+    tmp = [tmp, 0]
+    return nil if tmp[0] == nil
+    level_order_arr = []
+    queue = []
+    until queue.empty? && level_order_arr != []
+      level_order_arr.append([tmp[0], tmp[1]]) if tmp[0].data != nil
+      queue.append([tmp[0].left, tmp[1] + 1]) if tmp[0].left != nil
+      queue.append([tmp[0].right, tmp[1] + 1]) if tmp[0].right != nil
+      tmp = queue.shift
+    end
+    tmp[1]
+  end
+
+  def depth(node)
+    current_depth = 0
+    return nil if find(node) == nil
+    tmp = [@root, 0]
+    level_order_arr = []
+    queue = []
+    until tmp[0].data == node
+      level_order_arr.append([tmp[0], tmp[1]]) if tmp[0].data != nil
+      queue.append([tmp[0].left, tmp[1] + 1]) if tmp[0].left != nil
+      queue.append([tmp[0].right, tmp[1] + 1]) if tmp[0].right != nil
+      tmp = queue.shift
+    end
+    tmp[1]
+  end
+
+  def balanced?
+   # binding.pry
+    left_height = height(@root.left.data)
+    right_height = height(@root.right.data)
+    if left_height > right_height + 1 || right_height > left_height + 1
+      false
+    else
+      true
+    end
+  end
+
+  def rebalance
+    arr = []
+    postorder {|value| arr.append(value)}
+    build_tree(arr.sort.uniq)
+  end
 end
+
 
 
 class Node
@@ -120,9 +204,21 @@ end
 
 
 binary_search_tree = Tree.new(tree_array)
-binary_search_tree.build_tree(binary_search_tree.array)
-binary_search_tree.delete(8)
+binary_search_tree.build_tree(Array.new(15) {rand(1..100)}.uniq.sort)
+p binary_search_tree.balanced?
+binary_search_tree.preorder {|value| p value}
+binary_search_tree.postorder {|value| p value}
+binary_search_tree.inorder { |value| p value}
+binary_search_tree.insert(500)
+binary_search_tree.insert(600)
+binary_search_tree.insert(700)
+binary_search_tree.insert(800)
 binary_search_tree.pretty_print
-p binary_search_tree.level_order {}
+p binary_search_tree.balanced?
+
+
+
+
+
 
 
