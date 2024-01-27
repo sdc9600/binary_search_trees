@@ -10,11 +10,12 @@ class Tree
   end
 
   def build_tree(array, start = 0, final = array.length - 1)
-    return nil if start > final # Base case
+    return nil if start > final || array == nil || array.empty? # Base case
     mid = ((start+final) / 2.0).ceil
     root = Node.new(array[mid])
     root.left = build_tree(array[0..mid - 1], 0, mid - 1)
-    root.right = build_tree(array[mid + 1..array.length - 1], 0, mid - 1)    
+    root.right = build_tree(array[mid + 1..array.length - 1], 0, mid - 2) if array.length.even?
+    root.right = build_tree(array[mid + 1..array.length - 1], 0, mid - 1) if array.length.odd?  
     @root = root
   end
 
@@ -25,15 +26,14 @@ class Tree
   end
 
   def insert(value)
- #   binding.pry
-    return @root = value if @root == nil
+    return @root = Node.new(value) if @root == nil
     tmp = @root
     until tmp.data == nil do
       if value <= tmp.data
-        return tmp.left = Node.new(value) if tmp.left == nil 
+        return tmp.left = Node.new(value) if tmp.left == nil || tmp.left.data == nil
         tmp = tmp.left
       elsif value > tmp.data
-        return tmp.right = Node.new(value) if tmp.right == nil
+        return tmp.right = Node.new(value) if tmp.right == nil || tmp.right.data == nil
         tmp = tmp.right
       end
     end
@@ -93,7 +93,6 @@ class Tree
   end
 
   def inorder(tmp = @root, &block)
-   # binding.pry
     if block_given?
       inorder(tmp.left, &block) if tmp.left != nil
       yield tmp.data if tmp.data != nil
@@ -104,7 +103,6 @@ class Tree
   end
 
   def preorder(tmp = @root, &block)
-    # binding.pry
      if block_given?
        yield tmp.data if tmp.data != nil
        preorder(tmp.left, &block) if tmp.left != nil
@@ -115,7 +113,6 @@ class Tree
    end
 
    def postorder(tmp = @root, &block)
-    # binding.pry
      if block_given?
        postorder(tmp.left, &block) if tmp.left != nil
        postorder(tmp.right, &block) if tmp.right != nil
@@ -126,7 +123,6 @@ class Tree
    end
 
   def find(value)
-   # binding.pry
     tmp = @root
     until tmp == nil do
       if value < tmp.data
@@ -141,20 +137,19 @@ class Tree
   end
 
   def height(node)
- #  binding.pry
     current_height = 0
     tmp = find(node)
     tmp = [tmp, 0]
     return nil if tmp[0] == nil
     level_order_arr = []
     queue = []
-    until queue.empty? && level_order_arr != []
+    until queue.empty? && tmp == nil
       level_order_arr.append([tmp[0], tmp[1]]) if tmp[0].data != nil
       queue.append([tmp[0].left, tmp[1] + 1]) if tmp[0].left != nil
       queue.append([tmp[0].right, tmp[1] + 1]) if tmp[0].right != nil
       tmp = queue.shift
     end
-    tmp[1]
+    level_order_arr[-1][1]
   end
 
   def depth(node)
@@ -165,17 +160,18 @@ class Tree
     queue = []
     until tmp[0].data == node
       level_order_arr.append([tmp[0], tmp[1]]) if tmp[0].data != nil
-      queue.append([tmp[0].left, tmp[1] + 1]) if tmp[0].left != nil
-      queue.append([tmp[0].right, tmp[1] + 1]) if tmp[0].right != nil
+      queue.append([tmp[0].left, tmp[1] + 1]) if tmp[0].left.data != nil
+      queue.append([tmp[0].right, tmp[1] + 1]) if tmp[0].right.data != nil
       tmp = queue.shift
     end
     tmp[1]
   end
 
   def balanced?
-   # binding.pry
-    left_height = height(@root.left.data)
-    right_height = height(@root.right.data)
+    left_height = 0
+    right_height = 0
+    left_height = height(@root.left.data) if @root.left != nil
+    right_height = height(@root.right.data) if @root.right != nil
     if left_height > right_height + 1 || right_height > left_height + 1
       false
     else
@@ -206,15 +202,25 @@ end
 binary_search_tree = Tree.new(tree_array)
 binary_search_tree.build_tree(Array.new(15) {rand(1..100)}.uniq.sort)
 p binary_search_tree.balanced?
-binary_search_tree.preorder {|value| p value}
-binary_search_tree.postorder {|value| p value}
-binary_search_tree.inorder { |value| p value}
+binary_search_tree.preorder {|value| print "#{value}, "} 
+print "\n"
+binary_search_tree.postorder {|value| print "#{value}, "}
+print "\n"
+binary_search_tree.inorder { |value| print "#{value}, "}
+print "\n"
 binary_search_tree.insert(500)
 binary_search_tree.insert(600)
 binary_search_tree.insert(700)
-binary_search_tree.insert(800)
-binary_search_tree.pretty_print
 p binary_search_tree.balanced?
+binary_search_tree.rebalance
+p binary_search_tree.balanced?
+binary_search_tree.preorder {|value| print "#{value}, "}
+print "\n"
+binary_search_tree.postorder {|value| print "#{value}, "}
+print "\n"
+binary_search_tree.inorder { |value| print "#{value}, "}
+
+
 
 
 
